@@ -42,7 +42,7 @@ img { max-width: 100%; display: block; }
 ::selection { background: var(--signal-blue); color: var(--pure-white); }
 body::after { content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 9999; opacity: 0.022; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
 
-.nav { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; height: var(--nav-height); display: flex; align-items: center; justify-content: space-between; padding: 0 clamp(1.5rem, 4vw, 3rem); background: rgba(0,0,0,0.7); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-bottom: 1px solid rgba(255,255,255,0.04); transition: background 0.4s, border-color 0.4s; }
+.nav { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; height: var(--nav-height); display: flex; align-items: center; justify-content: space-between; padding: 0 clamp(1.5rem, 4vw, 3rem); background: rgba(0,0,0,0.7); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-bottom: 1px solid rgba(255,255,255,0.04); transition: background 0.4s, border-color 0.4s, opacity 0.35s ease, transform 0.35s ease; }
 .nav.scrolled { background: rgba(0,0,0,0.92); border-bottom-color: rgba(255,255,255,0.08); }
 .nav-logo { display: flex; align-items: center; gap: 0.75rem; cursor: pointer; }
 .nav-logo img { height: 36px; width: auto; transition: transform 0.3s var(--ease-spring); }
@@ -401,6 +401,7 @@ body::after { content: ''; position: fixed; inset: 0; pointer-events: none; z-in
 @keyframes splash-bg-out {
   to { opacity: 0; visibility: hidden; }
 }
+.nav.nav-hidden { opacity: 0; transform: translateY(-100%); pointer-events: none; }
 </style>
 </head>
 <body>
@@ -747,7 +748,25 @@ function observeReveals() {
   const metricsGrid = document.querySelector('.page.active .metrics-grid');
   if (metricsGrid) counterObs.observe(metricsGrid);
 }
-window.addEventListener('scroll', () => { document.getElementById('mainNav').classList.toggle('scrolled', window.scrollY > 20); });
+let lastScrollY = 0;
+let ticking = false;
+window.addEventListener('scroll', () => {
+  if (!ticking) {
+    window.requestAnimationFrame(() => {
+      const nav = document.getElementById('mainNav');
+      const currentY = window.scrollY;
+      nav.classList.toggle('scrolled', currentY > 20);
+      if (currentY > lastScrollY && currentY > 100) {
+        nav.classList.add('nav-hidden');
+      } else {
+        nav.classList.remove('nav-hidden');
+      }
+      lastScrollY = currentY;
+      ticking = false;
+    });
+    ticking = true;
+  }
+});
 
 // Splash screen
 setTimeout(() => {
